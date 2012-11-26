@@ -1,19 +1,36 @@
 Recipes = new Meteor.Collection("recipes")
-RecipesPaged = new Meteor.Collection("recipes_paged")
+RecipesCounts = new Meteor.Collection("recipes_counts")
 
 recipes_page_token = 'recipes.page'
 recipes_page_size_token = 'recipes.pagesize'
 
 Meteor.autosubscribe ()->
-	Meteor.subscribe('recipes_paged', Session.get( recipes_page_token ) || 0, Session.get( recipes_page_size_token ) || 5)
+	Meteor.subscribe('recipes', Session.get( recipes_page_token ) || 0, Session.get( recipes_page_size_token ) || 10)
 
-Meteor.subscribe( 'recipes' )
+Meteor.subscribe("recipes_counts")
 
 Template.main.recipeList = ()->
-	RecipesPaged.find({})
+	Recipes.find({})
 
 Template.main.totalRecipes = ()->
-	Recipes.find({}).count()
+	console.log "Template.main.totalRecipes"
+	counter = RecipesCounts.findOne({})
+	if counter?
+		counter.count
+	else
+		null
+
+Template.main.pageNumbers = ()->
+	console.log "page numbers called"
+	counter = RecipesCounts.findOne({})
+	pagesize = Session.get( recipes_page_size_token ) || 10
+	if counter?
+		count = counter.count
+		page_count = Math.ceil( count / pagesize )
+		result = []
+		for num in [1..page_count]
+			result.push {pagenum: num}
+		result
 
 Template.main.events =
 	"click #nextPage": (e,t)->
@@ -38,3 +55,11 @@ Template.main.events =
 		value = parseInt( e.currentTarget.value )
 		if value?
 			Session.set recipes_page_size_token, value
+		false
+
+	"click .pagination ul li a": (e,t)->
+		text = e.currentTarget.text
+		num = parseInt( text )
+		if num?
+			Session.set( recipes_page_token, num - 1 )
+		false

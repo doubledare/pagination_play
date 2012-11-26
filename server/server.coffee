@@ -1,13 +1,34 @@
 Recipes = new Meteor.Collection("recipes")
+RecipesCounts = new Meteor.Collection("recipes_counts")
 
 # (page)-> is a function definition
-Meteor.publish 'recipes', ()->
-	Recipes.find {}, {sort: {date: -1}}
-
-# (page)-> is a function definition
-Meteor.publish('recipes_paged', (page, page_size)->
+Meteor.publish('recipes', (page, page_size)->
 	console.log "server setting page", page
 	Recipes.find {}, {limit: page_size, skip: page_size * page, sort: {date: -1}})
+
+Meteor.publish 'recipes_counts', ()->
+	uuid = Meteor.uuid()
+	self = @
+
+	unthrottled_count = ()->
+		count = Recipes.find({}).count()
+		self.set('recipes_counts', uuid, {count: count})
+		self.flush()
+
+	setCount = _.throttle( unthrottled_count, 50 )
+
+	handle = Meteor._InvalidationCrossbar.listen({collection: "recipes"}, (notification, complete)->
+		setCount()
+		complete())
+
+	setCount()
+	self.complete()
+	self.flush()
+
+	self.onStop ()->
+		handle.stop()
+		self.unset( "recipes_counts", uuid, ["count"])
+		self.flush()
 
 Meteor.startup ()->
 	d = new Date()

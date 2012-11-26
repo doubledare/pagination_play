@@ -25,14 +25,23 @@
 		</tbody>
 	</table>
 	<br />
+	show
 	<select id="pageSizeSelect" class="input-mini">
-		<option value="5">5</option>
 		<option value="10">10</option>
-		<option value="25">25</option>
+		<option value="20">20</option>
+		<option value="40">40</option>
 	</select>
+	of
 	{{totalRecipes}}
+	<div class="pagination">
+	<ul>
+	{{#each pageNumbers}}
+		<li><a href="#">{{pagenum}}</a></li>
+	{{/each}}
+	</ul>
+</div>
 	<ul class="pager">
-		<li><a href="#" id="prevPage">&larr; Previous</a></li>
-		<li><a href="#" id="nextPage">Next &rarr;</a></li>
+		<li><a href="#" id="prevPage">&larr; Previous page</a></li>
+		<li><a href="#" id="nextPage">Next page &rarr;</a></li>
 	</ul>
 </template>
